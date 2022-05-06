@@ -1,5 +1,9 @@
 package com.graphhopper;
 
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -13,10 +17,6 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.openjdk.jmh.annotations.*;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
