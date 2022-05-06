@@ -1,19 +1,15 @@
 package com.graphhopper;
 
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.internal.inject.AbstractBinder;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 import org.openjdk.jmh.annotations.*;
 import org.slf4j.LoggerFactory;
 
@@ -97,44 +93,34 @@ public class JettyBenchmark {
     }
 
     public static void startServer(Server jettyServer, int[] array) throws Exception {
-        ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        handler.setContextPath("/");
-        ResourceConfig rc = new ResourceConfig();
-        rc.register(new AbstractBinder() {
-            @Override
-            public void configure() {
-                bind(new SumArrayResource(array)).to(SumArrayResource.class);
-            }
-        });
-        rc.register(SumArrayResource.class);
-        rc.register(BaselineResource.class);
-
-        handler.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
-        jettyServer.setHandler(handler);
+        ServletHandler servletHandler = new ServletHandler();
+        servletHandler.addServletWithMapping(new ServletHolder(new BaselineServlet()), "/baseline");
+        servletHandler.addServletWithMapping(new ServletHolder(new SumArrayServlet(array)), "/sumarray");
+        jettyServer.setHandler(servletHandler);
         jettyServer.start();
     }
 
-    @Path("sumarray")
-    public static class SumArrayResource {
-        final int[] array;
-
-        public SumArrayResource(int[] array) {
-            this.array = array;
-        }
-
-        @GET
-        @Produces({MediaType.APPLICATION_JSON})
-        public double sumArray() {
-            return JettyBenchmark.sumArray(array);
+    public static class BaselineServlet extends HttpServlet {
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            resp.setContentType("application/json");
+            resp.setStatus(200);
+            resp.getWriter().println("42");
         }
     }
 
-    @Path("baseline")
-    public static class BaselineResource {
-        @GET
-        @Produces({MediaType.APPLICATION_JSON})
-        public double baseline() {
-            return 42;
+    public static class SumArrayServlet extends HttpServlet {
+        final int[] array;
+
+        public SumArrayServlet(int[] array) {
+            this.array = array;
+        }
+
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            resp.setContentType("application/json");
+            resp.setStatus(200);
+            resp.getWriter().println(JettyBenchmark.sumArray(array));
         }
     }
 
