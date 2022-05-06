@@ -8,15 +8,18 @@ import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.apache.catalina.Context;
+import org.apache.catalina.LifecycleException;
+import org.apache.catalina.LifecycleState;
+import org.apache.catalina.connector.Connector;
+import org.apache.catalina.startup.Tomcat;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.openjdk.jmh.annotations.*;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +30,7 @@ public class JettyBenchmark {
     int size;
     private int[] array;
     OkHttpClient client;
-    private Server jettyServer;
+    private Tomcat tomcatServer;
 
     @Setup
     public void setup() throws Exception {
@@ -37,16 +40,17 @@ public class JettyBenchmark {
             array[i] = rnd.nextInt(100);
 
         client = new OkHttpClient.Builder().build();
-        jettyServer = new Server(8989);
-        startServer(jettyServer, array);
+        tomcatServer = new Tomcat();
+        Connector connector = new Connector();
+        connector.setPort(8989);
+        tomcatServer.getService().addConnector(connector);
+        startServer(tomcatServer, array);
     }
 
     @TearDown
     public void tearDown() throws Exception {
-        jettyServer.stop();
-        while (!jettyServer.isStopped()) {
-        }
-        jettyServer.destroy();
+        tomcatServer.stop();
+        tomcatServer.destroy();
     }
 
     @State(Scope.Thread)
@@ -96,9 +100,8 @@ public class JettyBenchmark {
         return result;
     }
 
-    public static void startServer(Server jettyServer, int[] array) throws Exception {
-        ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        handler.setContextPath("/");
+    public static void startServer(Tomcat tomcatServer, int[] array) {
+        Context context = tomcatServer.addWebapp("", new File(".").getAbsolutePath());
         ResourceConfig rc = new ResourceConfig();
         rc.register(new AbstractBinder() {
             @Override
@@ -108,10 +111,23 @@ public class JettyBenchmark {
         });
         rc.register(SumArrayResource.class);
         rc.register(BaselineResource.class);
+        Tomcat.addServlet(context, "embedded", new ServletContainer(rc));
+        context.addServletMappingDecoded("/*", "embedded");
 
-        handler.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
-        jettyServer.setHandler(handler);
-        jettyServer.start();
+        new Thread(() ->
+        {
+            try {
+                tomcatServer.start();
+                tomcatServer.getServer().await();
+            } catch (LifecycleException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        while (!tomcatServer.getServer().getState().equals(LifecycleState.STARTED)) {
+
+        }
+
     }
 
     @Path("sumarray")
