@@ -45,7 +45,7 @@ measureBaseline takes almost no time at all measureBaselineHttp is quite fast (l
 measureSumArray is proportional to the array size measureSumArrayHttp does not take much longer than measureSumArray,
 which can be expected because the server overhead is small according to measureBaselineHttp
 
-... however, on some other machines things aren't as clear, like this one:
+... However, on some other machines things aren't as clear, like this one:
 
 ```
 Benchmark                             (size)  Mode  Cnt   Score    Error  Units
@@ -63,10 +63,10 @@ JettyBenchmark.measureSumArrayHttp  20000000  avgt   25  18.906 ±  0.191  ms/op
 JettyBenchmark.measureSumArrayHttp  40000000  avgt   25  31.976 ±  0.046  ms/op
 ```
 
-measureBaseline, measureBaselineHttp and measureSumArray all seem fine But measureSumArrayHttp seems to add around 6ms
-additional time! Where is this coming from?
+measureBaseline, measureBaselineHttp and measureSumArray all seem fine, but measureSumArrayHttp seems to add around 6ms
+additional query time! Where is this coming from?
 
-... and on yet some other machines it is even a lot worse, like this one:
+On some other machines it is even a lot worse, like this one:
 
 ```
 Benchmark                             (size)  Mode  Cnt   Score    Error  Units
