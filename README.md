@@ -17,9 +17,11 @@ some work (it sums up all integers of an array). We then run queries against the
 time. We also run a benchmark that measures the time it takes to run the work method (taking the array sum)
 in isolation.
 
-measureBaseline - baseline that does nothing at all measureSumArray - sums random integers that were written to an int[]
-array, the array length is given by the size parameter measureBaselineHttp - runs queries against a servlet that returns
-a constant number measureSumArrayHttp - runs queries against a servlet that does the same work as measureSumArray
+* measureBaseline - baseline that does nothing at all
+* measureSumArray - sums random integers that were written to an int[] array, the array length is given by the size
+  parameter
+* measureBaselineHttp - runs queries against a servlet that returns a constant number
+* measureSumArrayHttp - runs queries against a servlet that does the same work as measureSumArray
 
 # Results
 
