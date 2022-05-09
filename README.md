@@ -87,3 +87,13 @@ JettyBenchmark.measureSumArrayHttp  40000000  avgt   25  54.949 ?  0.247  ms/op
 measureSumArrayHttp is not just slower by a few ms, but the difference even depends on the array length:
 Depending on the array size it takes around 7ms/15ms/29ms longer than measureSumArray, so the additional response time
 seems to increase proportionally to the array size! What is going on here?
+
+# What we know so far
+
+* All Intel CPUs we tried so far seem to show the first case (no issues) (for example we tried: i7-8700, i7-8550U,
+  i9-9900K)
+* The problematic second and third cases occur for AMD CPUs (for example we tried: AMD Ryzen 9 5950X, AMD EPYC 7502P)
+* For the problematic AMD CPUs it seems like we get the second case using Debian 10 and the third case using Debian 11
+* There is at least one AMD CPU that shows the first case (AMD Ryzen 7 PRO 5850U) using Ubuntu 21.10
+* Using different JDK versions (8, 11, 17) does not seem to change anything
+* We see the same problems using Tomcat and Jetty, but not using Vert.x
